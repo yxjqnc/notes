@@ -46,11 +46,9 @@
     <script src="./node_modules/editor/index.js"></script>
     <script src="./node_modules/md5/md5.min.js"></script>
     <script type="module">
-        import { Editor, Toolbar } from './node_modules/editor-for-vue/index.esm.js'
         import { parseTime } from './node_modules/utils/index.js'
         new Vue({
             el: '#app',
-            components: { Editor, Toolbar },
             data: function () {
                 return {
                     data: {
