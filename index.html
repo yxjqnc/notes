@@ -1,12 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑器</title>
+    <link href="./css/normalize.min.css" rel="stylesheet">
+    <link href="./node_modules/editor/css/style.css" rel="stylesheet">
+    <link href="./css/index.css" rel="stylesheet">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./node_modules/element-ui/theme-chalk/index.css">
 </head>
+
 <body>
-  
+    <div id="app">
+        <div id="top-container">
+            <!-- <el-button size="mini">编辑</el-button> -->
+            <div>
+                <el-date-picker v-model="time" type="date" size="mini" value-format="yyyyMMdd" @change="init">
+                </el-date-picker>
+            </div>
+            <div>
+                <el-button v-if="isEdit" size="mini" @click="save">保存</el-button>
+                <el-button v-else size="mini" @click="edit">编辑</el-button>
+            </div>
+        </div>
+        <div style="border-bottom: 1px solid #e8e8e8;">
+            <div id="editor-toolbar"></div>
+        </div>
+        <div id="content">
+            <div id="editor-container">
+                <div id="title-container">
+                    <input v-model="data.title" :readonly="!isEdit" placeholder="标题">
+                </div>
+                <div id="editor-text-area"></div>
+            </div>
+        </div>
+    </div>
+    <script src="./node_modules/vue/vue.js"></script>
+    <script src="./node_modules/axios/axios.min.js"></script>
+    <!-- 引入组件库 -->
+    <script src="./node_modules/element-ui/index.js"></script>
+
+    <script src="./node_modules/editor/index.js"></script>
+    <script src="./node_modules/md5/md5.min.js"></script>
+    <script type="module">
+        import { Editor, Toolbar } from './node_modules/editor-for-vue/index.esm.js'
+        import { parseTime } from './node_modules/utils/index.js'
+        new Vue({
+            el: '#app',
+            components: { Editor, Toolbar },
+            data: function () {
+                return {
+                    data: {
+                        title: '',
+                        content: ''
+                    },
+                    time: parseTime(new Date(), '{y}{m}{d}'),
+                    isEdit: false,
+                    editor: null
+                }
+            },
+            async mounted() {
+                this.initEditor()
+                await this.init()
+            },
+            methods: {
+                initEditor() {
+                    const _this = this
+
+                    const E = window.wangEditor
+
+                    // 切换语言
+                    const LANG = location.href.indexOf('lang=en') > 0 ? 'en' : 'zh-CN'
+                    E.i18nChangeLanguage(LANG)
+
+                    window.editorConfig = {
+                        placeholder: 'Type here...',
+                        scroll: false, // 禁止编辑器滚动
+                        MENU_CONF: {
+                            uploadImage: {
+                                fieldName: 'your-fileName',
+                                base64LimitSize: 10 * 1024 * 1024 // 10M 以下插入 base64
+                            }
+                        },
+                        readOnly: true,
+                        onChange(editor) {
+                            _this.data.content = editor.getHtml()
+                        }
+                    }
+
+                    // 先创建 editor
+                    window.editor = E.createEditor({
+                        selector: '#editor-text-area',
+                        content: [],
+                        html: this.data.content,
+                        config: editorConfig
+                    })
+
+
+                    // 创建 toolbar
+                    const toolbar = E.createToolbar({
+                        editor,
+                        selector: '#editor-toolbar',
+                        config: {
+                            excludeKeys: 'fullScreen',
+                        }
+                    })
+
+
+                    // 点击空白处 focus 编辑器
+                    document.getElementById('editor-text-area').addEventListener('click', e => {
+                        if (e.target.id === 'editor-text-area') {
+                            editor.blur()
+                            editor.focus(true) // focus 到末尾
+                        }
+                    })
+                },
+                async init() {
+                    const _this = this
+                    await axios.get(`https://yxjqnc.github.io/notes/data/${_this.time.substr(0, 4)}/${_this.time.substr(4, 2)}/${_this.time}.json`).then(res => {
+                        if (res.status === 200) {
+                            _this.data = JSON.parse(JSON.stringify(res.data))
+                        }
+                    }).catch((err) => {
+                        if (err.response.status === 404) {
+                            _this.data = {
+                                title: '',
+                                content: ''
+                            }
+                        }
+                    })
+                    window.editor.setHtml(this.data.content)
+                },
+                edit() {
+                    this.isEdit = true
+                    window.editor.enable()
+                },
+                save() {
+                    const fileName = `${this.time || parseTime(new Date(), '{y}{m}{d}')}.json`
+                    const data = {
+                        title: this.data.title,
+                        content: this.data.content,
+                        createTime: this.data.createTime || parseTime(new Date()),
+                        updateTime: parseTime(new Date())
+                    }
+                    this.downloadJsonOrTxt(fileName, JSON.stringify(data))
+                    this.isEdit = false
+                    window.editor.disable()
+                },
+                downloadJsonOrTxt(filename, text) {
+                    var pom = document.createElement('a');
+                    pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                    pom.setAttribute('download', filename);
+                    if (document.createEvent) {
+                        var event = document.createEvent('MouseEvents');
+                        event.initEvent('click', true, true);
+                        pom.dispatchEvent(event);
+                    } else {
+                        pom.click();
+                    }
+                }
+            }
+        })
+
+    </script>
 </body>
+
 </html>
