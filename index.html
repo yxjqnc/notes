@@ -7,10 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>编辑器</title>
     <link href="./css/normalize.min.css" rel="stylesheet">
-    <link href="./node_modules/editor/css/style.css" rel="stylesheet">
+    <link href="./js/editor/css/style.css" rel="stylesheet">
     <link href="./css/index.css" rel="stylesheet">
     <!-- 引入样式 -->
-    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.8/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="./js/element-ui/theme-chalk/index.css">
 </head>
 
 <body>
@@ -38,18 +38,15 @@
             </div>
         </div>
     </div>
-    <!-- 开发 -->
-    <!-- <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script> -->
-    <!-- 生产 -->
-    <script src="https://unpkg.com/vue@2.7.8/dist/vue.min.js"></script>
-    <script src="https://unpkg.com/axios@0.27.2/dist/axios.min.js"></script>
+    <script src="./js/vue/vue.js"></script>
+    <script src="./js/axios/axios.min.js"></script>
     <!-- 引入组件库 -->
-    <script src="https://unpkg.com/element-ui@2.15.8/lib/index.js"></script>
+    <script src="./js/element-ui/index.js"></script>
 
-    <script src="./node_modules/editor/index.js"></script>
-    <script src="./node_modules/md5/md5.min.js"></script>
+    <script src="./js/editor/index.js"></script>
+    <script src="./js/md5/md5.min.js"></script>
     <script type="module">
-        import { parseTime } from './node_modules/utils/index.js'
+        import { parseTime } from './js/utils/index.js'
         new Vue({
             el: '#app',
             data: function () {
